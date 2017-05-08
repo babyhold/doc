@@ -1,0 +1,61 @@
+1.清除本地修改
+git clean -df
+git checkout .
+2.状态
+ git status
+3.远程下载
+git clone https://github.com/zhonglianuyou/uyouMonitor.git
+4.切换分支
+git checkout 分支名
+5.切换不同修改记录
+git reset --hard sha版本号
+
+	6.更新,增加文件
+		git add 
+	7.提交本地仓库
+		git commit -m "更新测试"
+	8.提交远程仓库
+		git push
+9.fork 需要在页面上操作
+10.显示修改记录
+git show ..
+11. 从远程获取最新版本并merge到本地
+	git pull
+12.查看远程仓库地址
+git remote -v
+或直接修改config文件
+13.新工程增加到远程仓库
+总结
+
+    初始化一个本地Git仓库(把本地的文件夹初始化成一个Git可以管理的版本库)
+
+    git init
+
+    注意:需让命令行终端处在当前文件目录下
+
+    把文件添加到本地版本库
+
+    git add 文件名
+
+    把文件修改提交到仓库
+
+    git commit -m "注释"
+
+    关联一个远程仓库
+
+    git remote add origin git@github.com:YotrolZ/helloTest.git
+
+    将最新的修改推送到远程仓库
+
+    git push -u origin master
+
+        注意:
+        1.每次push前要先进行git add 文件名 和 git commit -m "注释"
+        2.在第一次进行push时,我们加上-u参数,后期push时就不用再加-u参数
+14.移除对应的远端仓库，可以运行
+    git remote rm origin
+15.创建远程分支
+git push origin fastdownload:fastdownload
+
+
+
