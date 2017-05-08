@@ -471,3 +471,8 @@
       
     //20.提取扩展名   
     String str2=str1.substring(str1.lastIndexOf(".")+1);  
+	
+	//21.重命名
+	File oldfile=new File(path+"/"+oldname); 
+    File newfile=new File(path+"/"+newname); 
+	oldfile.renameTo(newfile); 
