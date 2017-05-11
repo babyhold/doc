@@ -1,0 +1,14 @@
+1.debug key事件
+	getevent->logcat -s InputDispatcher->logcat -s WindowManager
+2.getprop,setprop  //可能存在/data，内存，或system（只读）
+3.dumpsys
+	dumpsys activity top
+	dumpsys input
+4.查看cpu情况
+  vmstat
+  cat /proc/cpuinfo
+  cat /proc/stat                 //cpu
+  cat /proc/%llu/stat			 //process
+  cat /proc/%llu/task/%llu/stat  //thread
+5.lsof
+  查看文件占用情况

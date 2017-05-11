@@ -1,0 +1,11 @@
+1.scanf(“%*s，%d”，i)；
+ 忽略第一次输入
+2.fscanf()   从文件中读取数据到数组中
+        FILE *fp;  
+        char name[64];  
+          
+        sprintf(name, "/proc/%llu/task/%llu/stat", pid, tid);  
+        fp = fopen(name, "r");  
+        if(!fp)return 0;//exit(-1);  
+
+        fscanf(fp, "%*s%llu%llu%llu%llu", &utime, &stime, &cutime, &cstime);  

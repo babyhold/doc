@@ -55,7 +55,10 @@ git remote -v
 14.移除对应的远端仓库，可以运行
     git remote rm origin
 15.创建远程分支
-git push origin fastdownload:fastdownload
+	git push origin fastdownload:fastdownload
+16.撤销上次add操纵
+	git reset HEAD .
+
 
 
 
