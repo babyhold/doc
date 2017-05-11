@@ -12,3 +12,16 @@
   cat /proc/%llu/task/%llu/stat  //thread
 5.lsof
   查看文件占用情况
+  cd /proc/%llu/fdinfo/ 或cd /proc/%llu/fd/下软链接
+  
+6.dmesg
+Linux命令dmesg用来显示开机信息，kernel会将开机信息存储在ring buffer中。您若是开机时来不及查看信息，可利用dmesg来查看。
+7.which
+命令的位置
+8.文件数限制
+  用户级：ulimit -n
+  系统级： cat /proc/sys/fs/file-max
+9.定义函数：int  readlink(const  char *path,  char *buf, size_t  bufsiz);
+10.进程对应的程序
+/proc/self/exe
+

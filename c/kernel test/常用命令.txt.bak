@@ -1,0 +1,12 @@
+lsmod
+insmod
+rmmod
+dmesg
+modinfo
+
+mount -t usbfs usbfs /pro/bus/usb/
+cat /pro/bus/usb/devices
+lsusb
+
+cat /proc/partitions
+cat /proc/uptimes

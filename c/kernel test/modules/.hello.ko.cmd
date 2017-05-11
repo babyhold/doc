@@ -1,0 +1,1 @@
+cmd_/home/sunming/tmp4/tmp/kerneltest/modules/hello.ko := aarch64-linux-gnu-ld -EL -r  -T /home/sunming/828kernel/3.10.40/scripts/module-common.lds --build-id  -o /home/sunming/tmp4/tmp/kerneltest/modules/hello.ko /home/sunming/tmp4/tmp/kerneltest/modules/hello.o /home/sunming/tmp4/tmp/kerneltest/modules/hello.mod.o

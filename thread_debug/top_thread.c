@@ -272,8 +272,19 @@ static sorted_time_t st[THREAD_MAX];
             printf("tid=%u	tname=%s                   usage=%.2f%% \n\n", st[i].tid,st[i].tname,st[i].usage);  
 
         }  
-        printf("*****************************************************************\n");        
-        printf("tcnt %d", ct.tcnt);  
+        printf("*****************************************************************\n");  
+        char mbuff[100];
+	 printf("open files:\n");
+		sprintf(mbuff, ("ls -l /proc/%llu/fd |busybox awk -F ' ' '{print $9  $10 $11}'"), pid); //产生："I love CSDN. "  这字符串写到s中
+		//printf(mbuff);
+         system(mbuff);
+
+	//	ls -al fd|busybox awk -F ' ' '{print $6 $7 $8}'
+	 printf("\ntcnt %d", ct.tcnt);  
+	 
+
+
+	// ls -al fd|busybox awk -F ' ' '{print $6 $7 $8}' 
         fflush(stdout);  
       
     _end:  

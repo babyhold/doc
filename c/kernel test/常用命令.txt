@@ -1,0 +1,17 @@
+lsmod
+insmod
+rmmod
+dmesg
+modinfo
+
+mount -t usbfs usbfs /pro/bus/usb/
+cat /pro/bus/usb/devices
+lsusb
+
+cat /proc/partitions
+cat /proc/uptime
+
+Make modules SUBDIRS=drivers/char
+make modules_install
+
+lsmod = cat /proc/modules

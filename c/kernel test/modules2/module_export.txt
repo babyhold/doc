@@ -1,0 +1,305 @@
+ EXPORT_SYMBOL解析
+
+一般我们编写C程序时，要调用某个文件中的函数，需要在本文件中包含声明有被调用函数的头文件，然后编译连接后，方能找到调用函数。对于模块依赖的情况，不能简单的使用上面的方法，内核提供了一个机制，就是EXPORT_SYMBOL标签内定义的函数或者符号对全部内核代码公开，不用修改内核代码就可以在您的内核模块中直接调用，即使用EXPORT_SYMBOL可以将一个函数以符号的方式导出给其他模块使用。您还可以手工修改内核源代码来导出另外的函数，用于重新编译并加载新内核后的测试。
+
+ 
+
+include/module.h:
+ 
+struct kernel_symbol 
+{
+    unsigned long value;   
+    const char *name;
+};
+/* For every exported symbol, place a struct in the __ksymtab section */
+#define __EXPORT_SYMBOL(sym, sec)               \
+    __CRC_SYMBOL(sym, sec)                  \
+    static const char __kstrtab_##sym[]         \
+    __attribute__((section("__ksymtab_strings")))       \
+    = MODULE_SYMBOL_PREFIX #sym;                        \
+    static const struct kernel_symbol __ksymtab_##sym   \
+    __attribute_used__                  \
+    __attribute__((section("__ksymtab" sec), unused))   \
+    = { (unsigned long)&sym, __kstrtab_##sym }
+
+#define EXPORT_SYMBOL(sym)                  \
+    __EXPORT_SYMBOL(sym, "")
+
+#define EXPORT_SYMBOL_GPL(sym)                  \
+    __EXPORT_SYMBOL(sym, "_gpl")
+
+#endif
+
+ 
+
+下面是这种方法是演示：
+
+
+第一个模块文件如下：
+
+[lingyun@localhost export_symbol]$ ls
+mod1  mod2
+[lingyun@localhost export_symbol]$ cd mod1/
+[lingyun@localhost mod1]$ ls
+Makefile  mod_a.c
+[lingyun@localhost mod1]$ vim mod_a.c 
+ mod_a.c                                                                                                            
+
+/*********************************************************************************
+ *      Copyright:  (C) 2013 fulinux<fulinux@sina.com> 
+ *                  All rights reserved.
+ *
+ *       Filename:  mod_a.c
+ *    Description:  This file 
+ *                 
+ *        Version:  1.0.0(07/12/2013~)
+ *         Author:  fulinux <fulinux@sina.com>
+ *      ChangeLog:  1, Release initial version on "07/12/2013 10:06:50 AM"
+ *                 
+ ********************************************************************************/
+
+
+#include <linux/init.h>
+#include <linux/module.h>
+#include <linux/kernel.h>
+
+
+static int func1(void)
+{
+    printk("In Func: %s...\n",__func__);
+    return 0;
+}
+EXPORT_SYMBOL(func1);
+
+
+static int __init hello_init(void)
+{
+    printk("Module 1, Init!\n");
+    return 0;
+}
+
+
+static void __exit hello_exit(void)
+{
+    printk("Module 1, Exit!\n");
+}
+
+
+module_init(hello_init);
+module_exit(hello_exit);
+
+
+MODULE_LICENSE("GPL");
+
+
+其中EXPORT_SYMBOL(func1)导出func1函数符号，保存函数地址和名称.
+
+ 
+
+这个模块的第一个Makefile文件：
+
+[lingyun@localhost mod1]$ ls
+Makefile  mod_a.c
+[lingyun@localhost mod1]$ vim Makefile 
+
+ 
+
+obj-m:=mod1.o
+mod1-y:=mod_a.o
+
+KERNELDIR := /lib/modules/$(shell uname -r)/build
+
+PWD:=$(shell pwd)
+
+modules:
+    $(MAKE) -C $(KERNELDIR) M=$(PWD) modules
+
+modules_install:
+    $(MAKE) -C $(KERNELDIR) M=$(PWD) modules_install
+clean:
+    rm -rf *.o *~core .depend .*.cmd *.ko *.ko.* *.mod.c .tmp_versions *odule* $(TARGET)
+
+
+其中内嵌对象 - obj-y，可加载模块 - obj-m， KERNELDIR指向指向内核代码目录。
+
+ 
+
+编译编译并加载：
+
+[lingyun@localhost mod1]$ ls
+Makefile  mod_a.c
+[lingyun@localhost mod1]$ make
+make -C /lib/modules/2.6.32-279.el6.x86_64/build  M=/usr/local/src/lingyun/fulinux/export_symbol/mod1 modules
+make[1]: Entering directory `/usr/src/kernels/2.6.32-279.el6.x86_64'
+  CC [M]  /usr/local/src/lingyun/fulinux/export_symbol/mod1/mod_a.o
+  LD [M]  /usr/local/src/lingyun/fulinux/export_symbol/mod1/mod1.o
+  Building modules, stage 2.
+  MODPOST 1 modules
+  CC      /usr/local/src/lingyun/fulinux/export_symbol/mod1/mod1.mod.o
+  LD [M]  /usr/local/src/lingyun/fulinux/export_symbol/mod1/mod1.ko.unsigned
+  NO SIGN [M] /usr/local/src/lingyun/fulinux/export_symbol/mod1/mod1.ko
+make[1]: Leaving directory `/usr/src/kernels/2.6.32-279.el6.x86_64'
+
+[lingyun@localhost mod1]$ sudo insmod mod1.ko
+
+[lingyun@localhost mod1]$ cat /proc/kallsyms | grep func1
+0000000000000000 r __ksymtab_func1      [mod1]
+0000000000000000 r __kstrtab_func1      [mod1]
+0000000000000000 r __kcrctab_func1      [mod1]
+0000000000000000 T func1        [mod1]
+[lingyun@localhost mod1]$ 
+
+[lingyun@localhost mod1]$ dmesg | grep Module
+- User ID: CentOS (Kernel Module GPG key)
+Module 1, Init!
+
+
+第二个模块的文件如下：
+
+[lingyun@localhost mod1]$ cd ../mod2/
+[lingyun@localhost mod2]$ vim mod_b.c 
+
+ 
+
+/*********************************************************************************
+ *      Copyright:  (C) 2013 fulinux<fulinux@sina.com> 
+ *                  All rights reserved.
+ *
+ *       Filename:  mod_b.c
+ *    Description:  This file 
+ *                 
+ *        Version:  1.0.0(07/12/2013~)
+ *         Author:  fulinux <fulinux@sina.com>
+ *      ChangeLog:  1, Release initial version on "07/12/2013 10:29:55 AM"
+ *                 
+ ********************************************************************************/
+
+#include <linux/init.h>
+#include <linux/kernel.h>
+#include <linux/module.h>
+
+static int func2(void)
+{
+    extern int func1(void);
+    func1();
+    printk("In Func: %s...\n",__func__);
+    return 0;
+}
+
+static int __init hello_init(void)
+{
+    printk("Module 2, Init!\n");
+    func2();
+    return 0;
+}
+
+static void __exit hello_exit(void)
+{
+    printk("Module 2, Exit!\n");
+}
+
+module_init(hello_init);
+module_exit(hello_exit);
+
+MODULE_LICENSE("GPL");
+
+ 
+
+ 
+
+在这里调用了第一个模块中的func1函数。
+
+对应的Makefile文件：
+
+[lingyun@localhost mod2]$ vim Makefile 
+
+ 
+
+obj-m:=mod2.o
+mod2-y:=mod_b.o
+
+KERNELDIR := /lib/modules/$(shell uname -r)/build
+
+PWD:=$(shell pwd)
+
+modules:
+    $(MAKE) -C $(KERNELDIR) M=$(PWD) modules
+
+modules_install:
+    $(MAKE) -C $(KERNELDIR) M=$(PWD) modules_install
+clean:
+    rm -rf *.o *~core .depend .*.cmd *.ko *.ko.* *.mod.c .tmp_versions *odule* $(TARGET)
+
+
+[lingyun@localhost mod2]$ make
+make -C /lib/modules/2.6.32-279.el6.x86_64/build  M=/usr/local/src/lingyun/fulinux/export_symbol/mod2 modules
+make[1]: Entering directory `/usr/src/kernels/2.6.32-279.el6.x86_64'
+  Building modules, stage 2.
+  MODPOST 1 modules
+WARNING: "func1" [/usr/local/src/lingyun/fulinux/export_symbol/mod2/mod2.ko] undefined!
+make[1]: Leaving directory `/usr/src/kernels/2.6.32-279.el6.x86_64'
+[lingyun@localhost mod2]$ 
+
+ 
+
+[lingyun@localhost mod2]$ sudo insmod mod2.ko
+insmod: error inserting 'mod2.ko': -1 Unknown symbol in module
+[lingyun@localhost mod2]$ 
+
+解决上面的问题如下：
+
+解决办法是把mod_a的Module.symvers放到mod_b的当前路径,从而编译mod_b,符号信息会自动连接进去.
+或者在mod_b的makefile中使用KBUILD_EXTRA_SYMBOLS指定mod_a的Module.symvers, 如:
+KBUILD_EXTRA_SYMBOLS=/mod_a/Module.symvers
+
+编译mod_b时,搜索Module.symvers的路径是:
+1, kernel source path, e.g. /usr/src/kernels/linux-2.6.28.10
+2, makefile中M=所指定的路径, 它等效于变量KBUILD_EXTMOD的值
+3, 变量KBUILD_EXTRA_SYMBOLS的值
+
+此时Makefile文件如下：
+
+ 
+
+obj-m:=mod2.o
+mod2-y:=mod_b.o
+
+KBUILD_EXTRA_SYMBOLS=~/fulinux/export_symbol/mod1/Module.symvers
+KERNELDIR := /lib/modules/$(shell uname -r)/build
+
+PWD:=$(shell pwd)
+
+modules:
+    $(MAKE) -C $(KERNELDIR) M=$(PWD) modules
+
+modules_install:
+    $(MAKE) -C $(KERNELDIR) M=$(PWD) modules_install
+clean:
+    rm -rf *.o *~core .depend .*.cmd *.ko *.ko.* *.mod.c .tmp_versions *odule* $(TARGET)
+
+
+在编译加载如下：
+
+ 
+
+[lingyun@localhost mod2]$ make
+make -C /lib/modules/2.6.32-279.el6.x86_64/build  M=/usr/local/src/lingyun/fulinux/export_symbol/mod2 modules
+make[1]: Entering directory `/usr/src/kernels/2.6.32-279.el6.x86_64'
+  CC [M]  /usr/local/src/lingyun/fulinux/export_symbol/mod2/mod_b.o
+  LD [M]  /usr/local/src/lingyun/fulinux/export_symbol/mod2/mod2.o
+  Building modules, stage 2.
+  MODPOST 1 modules
+  CC      /usr/local/src/lingyun/fulinux/export_symbol/mod2/mod2.mod.o
+  LD [M]  /usr/local/src/lingyun/fulinux/export_symbol/mod2/mod2.ko.unsigned
+  NO SIGN [M] /usr/local/src/lingyun/fulinux/export_symbol/mod2/mod2.ko
+make[1]: Leaving directory `/usr/src/kernels/2.6.32-279.el6.x86_64'
+[lingyun@localhost mod2]$ sudo insmod mod2.ko
+[lingyun@localhost mod2]$ 
+
+[lingyun@localhost mod2]$ dmesg | grep "In Func:"
+In Func: func1...
+In Func: func2...
+
+可见模块二调用模块一的func1成功！！！
+
+

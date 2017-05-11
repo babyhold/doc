@@ -1,0 +1,1 @@
+cmd_/home/sunming/RTL_TMP/modules2/mod1/mod1.ko := rsdk-linux-ld -r  -m elf32btsmip  --build-id -o /home/sunming/RTL_TMP/modules2/mod1/mod1.ko /home/sunming/RTL_TMP/modules2/mod1/mod1.o /home/sunming/RTL_TMP/modules2/mod1/mod1.mod.o

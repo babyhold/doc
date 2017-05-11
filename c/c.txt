@@ -1,0 +1,17 @@
+1.scanf(“%*s，%d”，i)；
+ 忽略第一次输入
+2.fscanf()   从文件中读取数据到数组中
+        FILE *fp;  
+        char name[64];  
+          
+        sprintf(name, "/proc/%llu/task/%llu/stat", pid, tid);  
+        fp = fopen(name, "r");  
+        if(!fp)return 0;//exit(-1);  
+
+        fscanf(fp, "%*s%llu%llu%llu%llu", &utime, &stime, &cutime, &cstime);  
+3.fflush函数的作用：把文件流中未写出的数据全部写出去。
+函数名: fflush
+功 能: 清除读写缓冲区，需要立即把输出缓冲区的数据进行物理写入时 
+4.snprintf()，为函数原型int snprintf(char *str, size_t size, const char *format, ...)。
+格式化输出
+5.
