@@ -155,7 +155,6 @@ static sorted_time_t st[THREAD_MAX];
         fscanf(fp, "%*s%llu%llu%llu%llu%llu%llu%llu%llu",   
                 &user, &nice, &sys, &idle, &irq, &softirq, &stealstolen, &guest);  
         fclose(fp);  
-      
         totalCpuTime = user + nice + sys + idle + irq + softirq + stealstolen +  guest;  
         *idle_ = idle;  
         return totalCpuTime;  
@@ -210,9 +209,9 @@ static sorted_time_t st[THREAD_MAX];
     if (fp  == NULL)
         printf ("Error opening file");
     else {
-        fgets(st[index].tname, 20 , fp) ;
-	// strcpy(st[index].tname,name);
-	 //strncpy(buf, src, MAX-1); 
+		
+       // fgets(st[index].tname, 20 , fp) ;
+        fscanf(fp, "%s", st[index].tname);  
 
         fclose (fp);
     }
@@ -250,19 +249,19 @@ static sorted_time_t st[THREAD_MAX];
         if(!delta_totalCpuTime)return 0;  
       
         //cpu usage  
-        pcpu[0] = 100*(delta_totalCpuTime - delta_idle)/(float)delta_totalCpuTime *processor_cnt;  
+        pcpu[0] = 100*(delta_totalCpuTime - delta_idle)/(float)delta_totalCpuTime ;//*processor_cnt;  
         //process usage  
-        pcpu[1] = 100*delta_processCpuTime/(float)delta_totalCpuTime *processor_cnt;  
+        pcpu[1] = 100*delta_processCpuTime/(float)delta_totalCpuTime;// *processor_cnt;  
       
         printf("\033[H\033[J");  //«Â∆¡
-	 printf("\n\rpid=%d, thread num=%d\n\r",pid,ct.tcnt);
-        printf("*****************************************\n");  	 
-        printf("cpu usage %.2f     process usage %.2f\n\n", pcpu[0], pcpu[1]);   
+	 printf("\n\rpid=%d, thread num=%d,processor_cnt=%d\n\r",pid,ct.tcnt,processor_cnt);
+        printf("*****************************************************************\n");  	 
+        printf("cpu usage %.2f %%   process usage %.2f %%\n\n", pcpu[0], pcpu[1]);   
       
         //thread usage  
         for(i = 0; i < ct.tcnt; ++i){  
             delta_threadCpuTime = ct.ttime[i] - get_ttime(&last_ct, ct.tid[i]);  
-            pcpu[2] = 100*delta_threadCpuTime/(float)delta_totalCpuTime *processor_cnt;  
+            pcpu[2] = 100*delta_threadCpuTime/(float)delta_totalCpuTime;// *processor_cnt;  
             st[i].tid = ct.tid[i];  
             st[i].usage = pcpu[2];  
 	     get_tname(i,st[i].tid);;
@@ -270,10 +269,10 @@ static sorted_time_t st[THREAD_MAX];
           
         qsort(st, ct.tcnt, sizeof(st[0]), sorted_time_cmp);  
         for(i = 0; i < ct.tcnt; ++i){  
-            printf("tid=%u	usage=%.2f   tname=%s\n", st[i].tid,st[i].usage,st[i].tname);  
+            printf("tid=%u	tname=%s                   usage=%.2f%% \n\n", st[i].tid,st[i].tname,st[i].usage);  
 
         }  
-        printf("*****************************************\n");        
+        printf("*****************************************************************\n");        
         printf("tcnt %d", ct.tcnt);  
         fflush(stdout);  
       
